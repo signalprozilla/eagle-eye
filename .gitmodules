@@ -1,0 +1,6 @@
+[submodule "third_party/eigen"]
+	path = third_party/eigen
+	url = https://gitlab.com/libeigen/eigen.git
+[submodule "third_party/ezc3d"]
+	path = third_party/ezc3d
+	url = https://github.com/pyomeca/ezc3d.git
