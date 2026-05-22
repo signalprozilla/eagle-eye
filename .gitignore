@@ -1,2 +1,17 @@
+# data/
+# build/
+# Local data and repository storage limits
 data/
+outputs/
 build/
+bin/
+
+# Large binary payloads and project structures
+*.c3d
+*.csv
+*.mp4
+
+# IDE local configuration layers
+.vscode/
+CMakeSettings.json
+*.user

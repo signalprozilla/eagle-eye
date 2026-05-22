@@ -1,6 +1,7 @@
 #include "c3d_loader.h"
 #include <stdexcept>
 
+
 C3DLoader::C3DLoader(const std::string& filePath) : m_c3d(filePath) {
     // ezc3d automatically throws an error if the file doesn't exist
 }
@@ -68,4 +69,7 @@ Eigen::Vector3d C3DLoader::getMarkerFrame(const std::string& markerName, size_t 
     // 3. Extract using ezc3d's true data pattern: data -> frame -> points -> point
     const auto& p = m_c3d.data().frame(frameIdx).points().point(markerIdx);
     return Eigen::Vector3d(p.x(), p.y(), p.z());
+}
+size_t C3DLoader::getNumFrames() const {
+    return m_c3d.data().nbFrames();
 }
