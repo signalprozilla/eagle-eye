@@ -8,14 +8,12 @@
 #include <cmath>
 #include <sstream>
 #include <algorithm>
+#include <iomanip>
 #include <Eigen/Dense>
 
 #include "c3d_loader.h"
 #include "kinematics.h"
 #include "anatomy.h"
-
-// Note: If computeElbowVarusTorque lives in a header like kinetics.h, 
-// make sure it matches the signature called below.
 
 namespace fs = std::filesystem;
 
@@ -224,15 +222,42 @@ int main() {
         return 1;
     }
 
+    // Sort matrices safely to extract percentiles and signed thresholds
     std::sort(absolute_errors.begin(), absolute_errors.end());
-    double median_mape = absolute_errors[absolute_errors.size() / 2];
+    std::sort(raw_gaps.begin(), raw_gaps.end());
 
+    auto get_percentile = [&](double percentile) -> double {
+        size_t idx = static_cast<size_t>(std::round((percentile / 100.0) * (processed_count - 1)));
+        return absolute_errors[idx];
+    };
+
+    double p10 = get_percentile(10.0);
+    double p25 = get_percentile(25.0);
+    double p50 = absolute_errors[processed_count / 2]; // Median Absolute Error (MAPE)
+    double p75 = get_percentile(75.0);
+    double p90 = get_percentile(90.0);
+    
+    // Extract true median from the signed deviation metric tracking
+    double median_signed_gap = raw_gaps[processed_count / 2];
+
+    // =========================================================================
+    //          REFINED BATCH RECONCILIATION SUMMARY
+    // =========================================================================
     std::cout << "\n=============================================" << std::endl;
     std::cout << "          BATCH RECONCILIATION SUMMARY       " << std::endl;
     std::cout << "=============================================" << std::endl;
     std::cout << "  Total Pitchers Successfully Reconciled: " << processed_count << std::endl;
     std::cout << "  Execution Runtime Time                : " << duration.count() << " seconds!" << std::endl;
-    std::cout << "  Median Absolute Percentage Error      : " << median_mape << "%" << std::endl;
+    std::cout << "---------------------------------------------" << std::endl;
+    std::cout << std::fixed << std::setprecision(4);
+    std::cout << "  Median Absolute Percentage Error      : " << p50 << "%" << std::endl;
+    std::cout << "  Median Signed Gap (Systematic Bias)   : " << median_signed_gap << "%" << std::endl;
+    std::cout << "---------------------------------------------" << std::endl;
+    std::cout << "  Error Distribution Percentiles:" << std::endl;
+    std::cout << "    10th Percentile Error               : " << p10 << "%" << std::endl;
+    std::cout << "    25th Percentile Error (Q1)          : " << p25 << "%" << std::endl;
+    std::cout << "    75th Percentile Error (Q3)          : " << p75 << "%" << std::endl;
+    std::cout << "    90th Percentile Error               : " << p90 << "%" << std::endl;
     std::cout << "=============================================" << std::endl;
 
     return 0;

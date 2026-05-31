@@ -25,43 +25,44 @@ FilterCoefficients computeButterworthCoefficients(double sampleRate, double cuto
     return coeffs;
 }
 
+// Helper function to run a single, stable forward pass of the difference equation
+std::vector<Eigen::Vector3d> runForwardPass(const std::vector<Eigen::Vector3d>& input, 
+                                            const FilterCoefficients& coeffs) {
+    size_t n = input.size();
+    std::vector<Eigen::Vector3d> output(n, Eigen::Vector3d::Zero());
+    
+    if (n < 3) return input;
+    
+    // Clamp initial states to prevent transient edge spikes
+    output[0] = input[0];
+    output[1] = input[1];
+    
+    for (size_t i = 2; i < n; ++i) {
+        output[i] = coeffs.b0 * input[i] + 
+                    coeffs.b1 * input[i-1] + 
+                    coeffs.b2 * input[i-2] - 
+                    coeffs.a1 * output[i-1] - 
+                    coeffs.a2 * output[i-2];
+    }
+    return output;
+}
+
 std::vector<Eigen::Vector3d> filterSignalDualPass(const std::vector<Eigen::Vector3d>& signal, 
                                                   const FilterCoefficients& coeffs) {
     size_t n = signal.size();
     if (n < 5) return signal; // Return raw data if too short to filter reasonably
     
-    std::vector<Eigen::Vector3d> forward_pass(n, Eigen::Vector3d::Zero());
-    std::vector<Eigen::Vector3d> backward_pass(n, Eigen::Vector3d::Zero());
+    // 1. Pass Forward
+    std::vector<Eigen::Vector3d> forward_pass = runForwardPass(signal, coeffs);
     
-    // -------------------------------------------------------------------------
-    // 1. FORWARD PASS
-    // -------------------------------------------------------------------------
-    // Initialize filter state by clamping to the initial frame position
-    forward_pass[0] = signal[0];
-    forward_pass[1] = signal[1];
+    // 2. Reverse the intermediate stream
+    std::reverse(forward_pass.begin(), forward_pass.end());
     
-    for (size_t i = 2; i < n; ++i) {
-        forward_pass[i] = coeffs.b0 * signal[i] + 
-                          coeffs.b1 * signal[i-1] + 
-                          coeffs.b2 * signal[i-2] - 
-                          coeffs.a1 * forward_pass[i-1] - 
-                          coeffs.a2 * forward_pass[i-2];
-    }
+    // 3. Pass Forward again over the inverted time sequence
+    std::vector<Eigen::Vector3d> backward_pass = runForwardPass(forward_pass, coeffs);
     
-    // -------------------------------------------------------------------------
-    // 2. BACKWARD PASS (Eliminates Phase Lag entirely)
-    // -------------------------------------------------------------------------
-    // Initialize backward pass state starting from the final frame position
-    backward_pass[n-1] = forward_pass[n-1];
-    backward_pass[n-2] = forward_pass[n-2];
-    
-    for (int i = static_cast<int>(n) - 3; i >= 0; --i) {
-        backward_pass[i] = coeffs.b0 * forward_pass[i] + 
-                           coeffs.b1 * forward_pass[i+1] + 
-                           coeffs.b2 * forward_pass[i+2] - 
-                           coeffs.a1 * backward_pass[i+1] - 
-                           coeffs.a2 * backward_pass[i+2];
-    }
+    // 4. Reverse back to restore native chronological timeline
+    std::reverse(backward_pass.begin(), backward_pass.end());
     
     return backward_pass;
 }
