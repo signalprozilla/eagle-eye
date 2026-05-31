@@ -86,7 +86,7 @@
     <h1>Eagle Eye</h1>
     <p class="subtitle">A signal-processing pipeline for estimating elbow joint stress in baseball pitchers, validated against motion-capture ground truth.</p>
     <p class="bio">
-      Anirudh Khandrika · University of Michigan, EECS BSE 2027 ·
+      Anirudh Khandrika · University of Michigan, BA + BSE 2027 ·
       <a href="mailto:ksablue@umich.edu">ksablue@umich.edu</a> ·
       <a href="https://github.com/signalprozilla/eagle-eye">github.com/signalprozilla/eagle-eye</a>
     </p>
@@ -94,7 +94,7 @@
 
   <section>
     <h2>The Problem</h2>
-    <p>Two-dimensional video analysis cannot recover the three-dimensional joint kinematics that drive pitching injuries. MLB recorded its highest pitching-injury rate in modern history in 2023, with the largest share concentrated in elbow valgus stress &mdash; the load that fails the ulnar collateral ligament. Existing video-only analysis pipelines systematically underestimate that load because they cannot resolve joint position through clothing and self-occlusion. Eagle Eye is a C++ pipeline that closes the gap: it computes 3D joint kinematics and inverse-dynamics estimates of elbow varus moment from raw motion capture, validates them against published ground truth, and lays the foundation for a Phase 2 video-only estimator.</p>
+    <p>Two-dimensional video analysis cannot recover the three-dimensional joint kinematics that drive pitching injuries. MLB recorded its highest pitching-injury rate in modern history in 2023, with the largest share concentrated in elbow valgus stress, the load that fails the ulnar collateral ligament. Existing video-only analysis pipelines systematically underestimate that load because they cannot resolve joint position through clothing and self-occlusion. Eagle Eye is a C++ pipeline that closes the gap: it computes 3D joint kinematics and inverse-dynamics estimates of elbow varus moment from raw motion capture, validates them against published ground truth, and lays the foundation for a Phase 2 video-only estimator.</p>
   </section>
 
   <section>
@@ -130,13 +130,13 @@
 
   <section>
     <h2>Phase 2 (Planned)</h2>
-    <p>Three components address the limitations characterized above. A full Newton-Euler recursive inverse-dynamics chain with hand-and-ball mass at the distal end will close the systematic underestimate by adding the omitted translational term. A multi-segment forearm model with explicit pronation tracking will address the breaking-ball error mode. Synthesized 2D occlusion of the mocap markers combined with an inverse-kinematics back-projection &mdash; using confidence-weighted reprojection residuals subject to anatomical-prior constraints &mdash; will produce the headline Phase 2 deliverable: the per-pitch <em>Stress Delta</em>, the gap between video-derived and mocap-derived elbow varus moment estimates.</p>
+    <p>Three components address the limitations characterized above. A full Newton-Euler recursive inverse-dynamics chain with hand-and-ball mass at the distal end will close the systematic underestimate by adding the omitted translational term. A multi-segment forearm model with explicit pronation tracking will address the breaking-ball error mode. Synthesized 2D occlusion of the mocap markers combined with an inverse-kinematics back-projection, using confidence-weighted reprojection residuals subject to anatomical-prior constraints, will produce the headline Phase 2 deliverable: the per-pitch <em>Stress Delta</em>, the gap between video-derived and mocap-derived elbow varus moment estimates.</p>
   </section>
 
   <section>
     <h2>References</h2>
     <ol class="references">
-      <li>Wu G., van der Helm F.C.T., Veeger H.E.J., et al. (2005). ISB recommendation on definitions of joint coordinate systems of various joints for the reporting of human joint motion &mdash; Part II: shoulder, elbow, wrist and hand. <em>Journal of Biomechanics</em>, 38(5), 981&ndash;992.</li>
+      <li>Wu G., van der Helm F.C.T., Veeger H.E.J., et al. (2005). ISB recommendation on definitions of joint coordinate systems of various joints for the reporting of human joint motion. Part II: shoulder, elbow, wrist and hand. <em>Journal of Biomechanics</em>, 38(5), 981&ndash;992.</li>
       <li>Winter D.A. (2009). <em>Biomechanics and Motor Control of Human Movement</em>, 4th ed. Wiley. Chapters 2 and 3.</li>
       <li>de Leva P. (1996). Adjustments to Zatsiorsky-Seluyanov's segment inertia parameters. <em>Journal of Biomechanics</em>, 29(9), 1223&ndash;1230.</li>
       <li>Fleisig G.S., Phillips R., Shatley A., et al. (2006). Kinematics and kinetics of youth baseball pitching with standard and lightweight balls. <em>Sports Engineering</em>, 9, 155&ndash;163.</li>
