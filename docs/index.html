@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eagle Eye — Anirudh Khandrika</title>
+<style>
+  :root {
+    --text: #1a1a1a;
+    --text-secondary: #4a4a4a;
+    --text-tertiary: #6a6a6a;
+    --bg: #fafaf7;
+    --rule: #d8d6d0;
+    --accent: #185FA5;
+    --code-bg: #f0eee8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container { max-width: 760px; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+  header { margin-bottom: 3rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--rule); }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    margin-bottom: 0.75rem;
+  }
+  h1 { font-size: 2rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.5rem; }
+  .subtitle { color: var(--text-secondary); font-size: 1.05rem; }
+  .bio { margin-top: 1.5rem; color: var(--text-secondary); }
+  .bio a {
+    color: var(--accent); text-decoration: none;
+    border-bottom: 1px solid transparent; transition: border-color 0.15s;
+  }
+  .bio a:hover { border-bottom-color: var(--accent); }
+  section { margin-bottom: 2.5rem; }
+  h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; letter-spacing: -0.005em; }
+  p { margin-bottom: 1rem; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+  .figure { margin: 1.5rem 0; text-align: center; }
+  .figure img {
+    max-width: 100%; height: auto;
+    border: 1px solid var(--rule); border-radius: 4px; background: white;
+  }
+  .figure-caption {
+    font-size: 0.9rem; color: var(--text-tertiary);
+    margin-top: 0.5rem; font-style: italic;
+  }
+  .metrics {
+    background: var(--code-bg); border-left: 3px solid var(--accent);
+    padding: 1rem 1.25rem; margin: 1rem 0;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.92rem; line-height: 1.8;
+  }
+  .metrics .metric-label { color: var(--text-secondary); }
+  .metrics .metric-value { color: var(--text); font-weight: 600; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em; background: var(--code-bg);
+    padding: 0.1em 0.35em; border-radius: 3px;
+  }
+  ol.references { padding-left: 1.25rem; }
+  ol.references li { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--text-secondary); }
+  footer {
+    margin-top: 4rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.9rem; color: var(--text-tertiary);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  footer a { color: var(--text-secondary); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  footer .row { margin-bottom: 0.25rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="eyebrow">Eagle Eye · Phase 1 Report · May 2026</div>
+    <h1>Eagle Eye</h1>
+    <p class="subtitle">A signal-processing pipeline for estimating elbow joint stress in baseball pitchers, validated against motion-capture ground truth.</p>
+    <p class="bio">
+      Anirudh Khandrika · University of Michigan, EECS BSE 2027 ·
+      <a href="mailto:ksablue@umich.edu">ksablue@umich.edu</a> ·
+      <a href="https://github.com/signalprozilla/eagle-eye">github.com/signalprozilla/eagle-eye</a>
+    </p>
+  </header>
+
+  <section>
+    <h2>The Problem</h2>
+    <p>Two-dimensional video analysis cannot recover the three-dimensional joint kinematics that drive pitching injuries. MLB recorded its highest pitching-injury rate in modern history in 2023, with the largest share concentrated in elbow valgus stress &mdash; the load that fails the ulnar collateral ligament. Existing video-only analysis pipelines systematically underestimate that load because they cannot resolve joint position through clothing and self-occlusion. Eagle Eye is a C++ pipeline that closes the gap: it computes 3D joint kinematics and inverse-dynamics estimates of elbow varus moment from raw motion capture, validates them against published ground truth, and lays the foundation for a Phase 2 video-only estimator.</p>
+  </section>
+
+  <section>
+    <h2>Method</h2>
+    <p>The Phase 1 pipeline ingests synchronized motion capture from the OpenBiomechanics Project (Driveline Baseball R&amp;D) in C3D format, constructs anatomical segment frames for the humerus and forearm following the International Society of Biomechanics joint coordinate system conventions [1], and extracts elbow flexion, valgus carrying angle, and pronation-supination via Euler decomposition of the relative segment rotation matrix.</p>
+    <p>Marker position trajectories are filtered with a 20 Hz low-pass Butterworth filter applied in a zero-phase forward-backward configuration before differentiation. The choice of low-pass filtering before numerical differentiation is essential: differentiation has a frequency response proportional to <code>j&omega;</code>, so double differentiation amplifies high-frequency noise by a factor of <code>&omega;&sup2;</code>. High-frequency tracking noise that is negligible in the raw position signal becomes dominant in the joint acceleration signal without filtering [2].</p>
+    <p>Peak elbow varus moment is computed via a simplified single-segment inverse-dynamics model, <code>M = I<sub>com</sub> &middot; &alpha;</code>, where the segment moment of inertia is derived from anthropometric regression on each pitcher's body mass and forearm length [3]. The translational-acceleration-of-COM term in the full Newton-Euler formulation is omitted in Phase 1; its contribution is characterized in the analysis below.</p>
+  </section>
+
+  <section>
+    <h2>Phase 1 Results</h2>
+    <p>The pipeline was validated against the OpenBiomechanics Project published elbow varus moment values across 205 pitches from elite-level subjects. Performance:</p>
+    <div class="metrics">
+      <div><span class="metric-label">Median absolute percentage error:</span> <span class="metric-value">18.4%</span></div>
+      <div><span class="metric-label">Median signed bias:</span> <span class="metric-value">+12.7% (underestimate)</span></div>
+      <div><span class="metric-label">10th percentile absolute error:</span> <span class="metric-value">4.3%</span></div>
+      <div><span class="metric-label">25th percentile absolute error:</span> <span class="metric-value">9.3%</span></div>
+      <div><span class="metric-label">75th percentile absolute error:</span> <span class="metric-value">38.7%</span></div>
+      <div><span class="metric-label">Batch runtime, 205 pitches:</span> <span class="metric-value">~2.5 seconds</span></div>
+    </div>
+    <p>A quarter of the pitches in the cohort fall within 9.3% of the OBP ground truth, with the median pitch within 18.4%. The positive median signed bias is consistent with the simplified single-segment model functioning as a lower-bound estimator of true joint moment, as the omitted translational-acceleration term contributes positively to peak varus moment during high arm-acceleration phases.</p>
+    <div class="figure">
+      <img src="elbow_trajectory.png" alt="3D trajectory of the left elbow marker through a single pitch, showing the wind-up loop, arm-cocking ascent, and acceleration phase.">
+      <div class="figure-caption">Figure 1. Three-dimensional trajectory of the left elbow marker through a single OpenBiomechanics pitch, computed by the Phase 1 pipeline. The circular path corresponds to the wind-up phase; the upward arc corresponds to arm cocking and acceleration through release.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Error Analysis</h2>
+    <p>The +12.7% median signed bias has a direct physical interpretation. The simplified inverse-dynamics model captures the rotational inertia contribution to elbow varus moment, <code>I<sub>com</sub> &middot; &alpha;</code>, but omits the translational contribution from linear acceleration of the segment center of mass, <code>m &middot; r &times; a<sub>com</sub></code>. Published biomechanics literature places the translational term's contribution at roughly 20&ndash;30% of total elbow varus moment in pitching [4]; the observed 13% median bias is consistent with this contribution, weighted by the body-mass distribution of the OBP cohort.</p>
+    <p>Per-pitch error stratification reveals two systematic dependencies. First, lighter pitchers exhibit larger absolute errors than heavier pitchers, consistent with the omitted translational term contributing proportionally more at higher arm angular accelerations. The body-mass dependence mirrors the youth-versus-professional elbow varus moment scaling reported by Fleisig et al. [4], where pediatric peak moments (~27 N&middot;m) and professional peak moments (~64 N&middot;m) differ by a factor consistent with linear scaling in segment mass but not in arm angular kinematics. Second, breaking-ball pitches exhibit larger errors than fastballs, consistent with a rigid single-segment forearm model's inability to represent the pronation-supination dynamics that distinguish breaking-ball mechanics. The single-marker wrist tracking used in Phase 1 is a secondary contributor; resolving it is part of Phase 2.</p>
+  </section>
+
+  <section>
+    <h2>Phase 2 (Planned)</h2>
+    <p>Three components address the limitations characterized above. A full Newton-Euler recursive inverse-dynamics chain with hand-and-ball mass at the distal end will close the systematic underestimate by adding the omitted translational term. A multi-segment forearm model with explicit pronation tracking will address the breaking-ball error mode. Synthesized 2D occlusion of the mocap markers combined with an inverse-kinematics back-projection &mdash; using confidence-weighted reprojection residuals subject to anatomical-prior constraints &mdash; will produce the headline Phase 2 deliverable: the per-pitch <em>Stress Delta</em>, the gap between video-derived and mocap-derived elbow varus moment estimates.</p>
+  </section>
+
+  <section>
+    <h2>References</h2>
+    <ol class="references">
+      <li>Wu G., van der Helm F.C.T., Veeger H.E.J., et al. (2005). ISB recommendation on definitions of joint coordinate systems of various joints for the reporting of human joint motion &mdash; Part II: shoulder, elbow, wrist and hand. <em>Journal of Biomechanics</em>, 38(5), 981&ndash;992.</li>
+      <li>Winter D.A. (2009). <em>Biomechanics and Motor Control of Human Movement</em>, 4th ed. Wiley. Chapters 2 and 3.</li>
+      <li>de Leva P. (1996). Adjustments to Zatsiorsky-Seluyanov's segment inertia parameters. <em>Journal of Biomechanics</em>, 29(9), 1223&ndash;1230.</li>
+      <li>Fleisig G.S., Phillips R., Shatley A., et al. (2006). Kinematics and kinetics of youth baseball pitching with standard and lightweight balls. <em>Sports Engineering</em>, 9, 155&ndash;163.</li>
+    </ol>
+  </section>
+
+  <footer>
+    <div class="row">Anirudh Khandrika &middot; University of Michigan EECS</div>
+    <div class="row"><a href="mailto:ksablue@umich.edu">ksablue@umich.edu</a> &middot; <a href="https://github.com/signalprozilla/eagle-eye">github.com/signalprozilla/eagle-eye</a></div>
+  </footer>
+
+</div>
+</body>
+</html>
